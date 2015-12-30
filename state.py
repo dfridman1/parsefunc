@@ -48,6 +48,6 @@ def mplusStatesMany(*states):
 
 
 
-def parseErrorFromSuccessState(state, errorMsg):
+def parseErrorFromSuccessState(state, message, expected='', noneof=''):
     '''Creates a ParseError from a previos state (of type ParseSuccess)'''
-    return ParseError(parseSuccessPos(state), errorMsg)
+    return ParseError(parseSuccessPos(state), message, expected, noneof)

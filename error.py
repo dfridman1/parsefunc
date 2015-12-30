@@ -3,9 +3,13 @@ from utils import updateField
 from pos import sourceLine, sourceColumn
 
 
-sourcePos, errorMsg = 'sorcePos', 'error'
 
-ParseError = namedtuple('ParseError', [sourcePos, errorMsg])
+
+sourcePos, errorMsg, oneOfChars, noneofChars = 'sorcePos', 'error', 'oneof', 'noneof'
+
+
+
+ParseError = namedtuple('ParseError', [sourcePos, errorMsg, oneOfChars, noneofChars])
 
 
 
@@ -32,6 +36,14 @@ def parseErrorMsg(pError):
     return getattr(pError, errorMsg)
 
 
+def parseErrorOneOf(pError):
+    return getattr(pError, oneOfChars)
+
+
+def parseErrorNoneOf(pError):
+    return getattr(pError, noneofChars)
+
+
 
 def mergeErrors(p1, p2):
     '''Returns an error, which occurres further down the input.'''
@@ -40,8 +52,25 @@ def mergeErrors(p1, p2):
     x = sourceLine(pos1), sourceColumn(pos1)
     y = sourceLine(pos2), sourceColumn(pos2)
 
-    return p1 if x > y else p2
+    if x > y:
+        return p1
+    elif y > x:
+        return p2
+    else:
+        return concatErrors(p1, p2)
 
+
+
+def concatErrors(p1, p2):
+    mergedOneOf  = parseErrorOneOf(p1) + parseErrorOneOf(p2)
+    mergedNoneOf = parseErrorNoneOf(p1) + parseErrorNoneOf(p2)
+
+    return ParseError(parseErrorPos(p1),
+                      parseErrorMsg(p1),
+                      mergedOneOf,
+                      mergedNoneOf)
+
+    
 
 
 def mergeErrorsMany(*errors):

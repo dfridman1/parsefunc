@@ -18,9 +18,9 @@ def char(ch):
         if text and text[0] == ch:
             return updateParseSuccess(state, ch, ch, text[1:])
         else:
-            found    = 'EOF reached' if not text else text[0] + ' found'
-            errorMsg = found + ', expected \'%s\'' % ch
-            return parseErrorFromSuccessState(state, errorMsg)
+            message  = 'EOF reached' if not text else text[0] + ' found'
+            expected = ch
+            return parseErrorFromSuccessState(state, message, expected=expected)
     return processor
 
 
@@ -36,8 +36,20 @@ def oneOf(chars):
 
 
 
-# def noneOf(chars):
-#     return lambda text: (text[0], text[1:]) if oneOf(chars)(text) is None else None
+def noneOf(chars):
+    def processor(state):
+        rem = parseSuccessRemainder(state)
+        if not rem:
+            return parseErrorFromSuccessState(state, 'EOF reached')
+        for ch in chars:
+            newstate = char(ch)(state)
+            if isParseSuccess(newstate):
+                message, noneof = '%s found' % ch, chars
+                return parseErrorFromSuccessState(state, message, noneof=noneof)
+        return updateParseSuccess(state, rem[0], rem[0], rem[1:])
+    return processor
+            
+                
 
 
 
