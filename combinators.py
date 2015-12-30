@@ -1,7 +1,14 @@
 # *** COMBINATORS ***
 
 
-from state import *
+from state import (
+    isParseError,
+    isParseSuccess,
+    parseSuccessTree,
+    setParseSuccessTree,
+    mergeErrorsMany,
+)
+
 
 
 

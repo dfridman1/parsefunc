@@ -1,6 +1,12 @@
 from string import ascii_letters
 from combinators import choice, sequence, many1
-from state import *
+
+from state import (
+    parseSuccessRemainder,
+    updateParseSuccess,
+    parseErrorFromSuccessState,
+    isParseSuccess
+)
 
 
 
@@ -64,3 +70,4 @@ rparen  = char(')')
 lbrace  = char('{')
 rbrace  = char('}')
 newline = char('\n')
+tab     = char('\t')
