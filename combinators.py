@@ -1,49 +1,49 @@
 # *** COMBINATORS ***
 
 
+from state import *
+
 
 
 def sequence(*parsers):
-    def processor(text):
-        result = []
+    def processor(state):
+        tree = []
         for pr in parsers:
-            try:
-                matched_text, text = pr(text)
-                result.append(matched_text)
-            except TypeError:
-                return None
-        return (result, text)
+            state = pr(state)
+            if isParseError(state):
+                return state
+            tree.append(parseSuccessTree(state))
+        return setParseSuccessTree(state, tree)
     return processor
+
 
 
 
 def choice(*parsers):
-    def processor(text):
+    def processor(state):
+        errors = []
         for pr in parsers:
-            m = pr(text)
-            if m is not None:
-                return m
+            newstate = pr(state)
+            if isParseSuccess(newstate):
+                return newstate
+            errors.append(newstate)
+        return mergeErrorsMany(*errors)
     return processor
-
 
 
 
 def many1(parser):
-    def processor(text):
-        m = parser(text)
-        if m is None:
-            return None
-        first_match, text = m
-        matched = [first_match]
-        
+    def processor(state):
+        at_least_one, tree = False, []
         while True:
-            try:
-                matched_text, text = parser(text)
-                matched.append(matched_text)
-            except TypeError:
+            newstate = parser(state)
+            if isParseError(newstate):
                 break
-        return matched, text
+            tree.append(parseSuccessTree(newstate))
+            state, at_least_one = newstate, True
+        return setParseSuccessTree(state, tree) if at_least_one else newstate
     return processor
+
 
 
 
@@ -51,42 +51,31 @@ def many(parser):
     return option(many1(parser))
 
 
-
 def option(parser):
-    def processor(text):
-        m = parser(text)
-        return m if m is not None else ([], text)
+    def processor(state):
+        newstate = parser(state)
+        return newstate if isParseSuccess(newstate) else state
     return processor
 
 
 
+
 def sepBy(parser, sep):
-    def processor(text):
-        try:
-            match, text      = parser(text)
-            rest_match, text = many(sequence(sep, parser))(text)
-            return [match] + map(lambda x: x[1], rest_match), text
-        except TypeError:
-            return [], text
+    def processor(state):
+        newstate = parser(state)
+        if isParseError(newstate):
+            return newstate
+        tree     = [parseSuccessTree(newstate)]
+        newstate = many(sequence(sep, parser))(newstate)
+        tree.extend(map(lambda x: x[1], parseSuccessTree(newstate)))  # get rid of 'sep' component
+        return setParseSuccessTree(newstate, tree)
     return processor
 
 
 
 def endBy(parser, sep):
-    def processor(text):
-        match, text = many(sequence(parser, sep))(text)
-        return map(lambda x: x[0], match), text
+    def processor(state):
+        newstate = many(sequence(parser, sep))(state)
+        tree     = map(lambda x: x[0], parseSuccessTree(newstate))  # get rid of 'sep' component
+        return setParseSuccessTree(newstate, tree)
     return processor
-    
-
-
-# def parseAtom(text):
-#     return choice(letters, digits)(text)
-
-# def parseList(text):
-#     return sequence(char('('), sepBy(parseExpr, spaces), char(')'))(text)
-
-# parseExpr = choice(parseAtom, parseList)
-
-
-# print parseExpr('(4 8 9 (define x 10))')

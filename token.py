@@ -1,16 +1,19 @@
-from char import lparen, rparen
+from char import lparen, rparen, lbrace, rbrace
 from combinators import sequence
+from state import isParseError, parseSuccessTree, setParseSuccessTree
+
 
 
 
 def enclose(open, parser, close):
-    def processor(text):
-        try:
-            (_, body, _), text = sequence(open, parser, close)(text)
-            return body, text
-        except TypeError:
-            return None
+    def processor(state):
+        newstate = sequence(open, parser, close)(state)
+        if isParseError(newstate):
+            return newstate
+        parser_tree = parseSuccessTree(newstate)[1]
+        return setParseSuccessTree(newstate, parser_tree)
     return processor
+
 
 
 def parens(parser):
