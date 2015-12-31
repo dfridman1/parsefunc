@@ -11,13 +11,6 @@ from state import (
 
 
 
-
-def char_range(c1, c2):
-    for c in xrange(ord(c1), ord(c2) + 1):
-        yield chr(c)
-
-
-
         
 def char(ch):
     def processor(state):
@@ -66,7 +59,7 @@ def noneOf(chars):
 
 letter  = oneOf(ascii_letters)
 letters = syntax_tree(mkString)(many1(letter))
-digit   = oneOf(char_range('0', '9'))
+digit   = oneOf(''.join(map(str, xrange(10))))
 digits  = syntax_tree(mkString)(many1(digit))
 space   = char(' ')
 spaces  = syntax_tree(mkString)(many1(space))
