@@ -42,14 +42,18 @@ def choice(*parsers):
 
 def many1(parser):
     def processor(state):
-        at_least_one, tree = False, []
+        state = parser(state)
+        if isParseError(state):
+            return state
+        tree = [parseSuccessTree(state)]
         while True:
             newstate = parser(state)
             if isParseError(newstate):
                 break
             tree.append(parseSuccessTree(newstate))
-            state, at_least_one = newstate, True
-        return setParseSuccessTree(state, tree) if at_least_one else newstate
+            state = newstate
+        return newstate if stateOccurresLater(newstate, state) else setParseSuccessTree(state, tree)
+        
     return processor
 
 
@@ -74,49 +78,38 @@ def option(default_value, parser):
 
 
 
-def alternating(parser, sep, to_keep=0):
-    '''If to_keep = 0 (1), keep what is produced by parser (sep)'''
+
+def sepBy1(parser, sep):
     def processor(state):
-        newstate = many1(sequence(parser, sep))(state)
-
-        if isParseError(newstate):
-            newstate = parser(state) if to_keep == 0 else choice(sep, parser)(state)
-            if isParseError(newstate):
-                return setParseSuccessTree(state, []) if to_keep == 0 else newstate
-            else:
-                tree = [parseSuccessTree(newstate)] if to_keep == 0 else []
-                return setParseSuccessTree(newstate, tree)
-
-        else:
-            tree = map(lambda x: x[to_keep], parseSuccessTree(newstate))
-            newstate = choice(sep, parser)(newstate)
-            if isParseError(newstate):
-                return newstate
-            else:
-                if to_keep == 0:
-                    tree.append(parseSuccessTree(newstate))
-                return setParseSuccessTree(newstate, tree)
+        state = parser(state)
+        if isParseError(state):
+            return state
+        tree = [parseSuccessTree(state)]
+        state = many(sequence(sep, choice(parser, sep)))(state)
+        if isParseError(state):
+            return state
+        tree.extend(map(lambda x: x[1], parseSuccessTree(state)))
+        return setParseSuccessTree(state, tree)
     return processor
 
 
 
 
 def sepBy(parser, sep):
-    return alternating(parser, sep)
+    return option([], sepBy1(parser, sep))
+
+
+
+def endBy1(parser, sep):
+    def processor(state):
+        newstate = many1(sequence(parser, choice(sep, parser)))(state)
+        if isParseError(newstate):
+            return newstate
+        tree = map(lambda x: x[0], parseSuccessTree(newstate))
+        return setParseSuccessTree(newstate, tree)
+    return processor
 
 
 
 def endBy(parser, sep):
-    def processor(state):
-        newstate = parser(state)
-        if isParseError(newstate):
-            return setParseSuccessTree(state, [])
-        else:
-            tree = [parseSuccessTree(newstate)]
-            newstate = alternating(sep, parser, to_keep=1)(newstate)
-            if isParseError(newstate):
-                return newstate
-            else:
-                tree.extend(parseSuccessTree(newstate))
-                return setParseSuccessTree(newstate, tree)
-    return processor
+    return option([], endBy1(parser, sep))
