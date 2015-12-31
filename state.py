@@ -22,6 +22,20 @@ from error import (
 )
 
 
+from pos import sourceLine, sourceColumn
+
+
+
+def stateLineColumn(state):
+    pos =  parseSuccessPos(state) if isParseSuccess(state) else parseErrorPos(state)
+    return sourceLine(pos), sourceColumn(pos)
+
+
+
+def stateOccurresLater(state1, state2):
+    '''Returns True if state1 occurres later in the input than state2.'''
+    return stateLineColumn(state1) > stateLineColumn(state2)
+    
 
 
 def isParseSuccess(state):

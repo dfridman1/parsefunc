@@ -7,6 +7,7 @@ from state import (
     parseSuccessTree,
     setParseSuccessTree,
     mergeErrorsMany,
+    stateOccurresLater
 )
 
 
@@ -55,14 +56,19 @@ def many1(parser):
 
 
 def many(parser):
-    return option(many1(parser))
+    return option([], many1(parser))
 
 
 
-def option(parser):
+def option(default_value, parser):
     def processor(state):
         newstate = parser(state)
-        return newstate if isParseSuccess(newstate) else state
+        if isParseSuccess(newstate):
+            return newstate
+        elif stateOccurresLater(newstate, state):
+            return newstate
+        else:
+            return setParseSuccessTree(state, default_value)
     return processor
 
 
