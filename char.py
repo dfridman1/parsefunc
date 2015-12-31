@@ -1,5 +1,6 @@
 from string import ascii_letters
 from combinators import choice, sequence, many1
+from prim import syntax_tree
 
 from state import (
     parseSuccessRemainder,
@@ -31,9 +32,13 @@ def char(ch):
 
 
 
+def mkString(chars):
+    return ''.join(chars)
+
+
 
 def string(s):
-    return sequence(*map(char, s))
+    return syntax_tree(mkString)(sequence(*map(char, s)))
 
 
 
@@ -60,11 +65,11 @@ def noneOf(chars):
 
 
 letter  = oneOf(ascii_letters)
-letters = many1(letter)
+letters = syntax_tree(mkString)(many1(letter))
 digit   = oneOf(char_range('0', '9'))
-digits  = many1(digit)
+digits  = syntax_tree(mkString)(many1(digit))
 space   = char(' ')
-spaces  = many1(space)
+spaces  = syntax_tree(mkString)(many1(space))
 lparen  = char('(')
 rparen  = char(')')
 lbrace  = char('{')
