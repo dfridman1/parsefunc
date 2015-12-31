@@ -1,5 +1,5 @@
 from state import initialParseState
-from state import isParseSuccess, parseSuccessTree, setParseSuccessTree
+from state import isParseSuccess, parseSuccessTree, setParseSuccessTree, showParseError
 
 
 
@@ -20,5 +20,9 @@ def syntax_tree(transform):
 
 
 
-def parse(sourceName, parser, input):
-    return parser(initialParseState(sourceName, input))
+
+
+def parse(parser, input, sourceName=None):
+    state = parser(initialParseState(sourceName, input))
+    
+    return parseSuccessTree(state) if isParseSuccess(state) else showParseError(state)

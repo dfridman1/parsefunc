@@ -18,7 +18,7 @@ def char(ch):
         if text and text[0] == ch:
             return updateParseSuccess(state, ch, ch, text[1:])
         else:
-            message  = 'EOF reached' if not text else text[0] + ' found'
+            message  = 'unexpected end of input' if not text else 'unexpected %r' % text[0]
             expected = ch
             return parseErrorFromSuccessState(state, message, expected=expected)
     return processor
@@ -44,7 +44,7 @@ def noneOf(chars):
     def processor(state):
         rem = parseSuccessRemainder(state)
         if not rem:
-            return parseErrorFromSuccessState(state, 'EOF reached', noneof=chars)
+            return parseErrorFromSuccessState(state, 'unexpected end of input', noneof=chars)
         for ch in chars:
             newstate = char(ch)(state)
             if isParseSuccess(newstate):

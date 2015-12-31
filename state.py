@@ -12,6 +12,7 @@ from success import (
 
 from error import (
     ParseError,
+    showParseError,
     setParseErrorPos,
     setParseErrorMsg,
     parseErrorPos,

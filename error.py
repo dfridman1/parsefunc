@@ -1,6 +1,7 @@
 from collections import namedtuple
 from utils import updateField
-from pos import sourceLine, sourceColumn
+from pos import sourceLine, sourceColumn, sourceName
+from string import ascii_letters
 
 
 
@@ -10,6 +11,7 @@ sourcePos, errorMsg, oneOfChars, noneofChars = 'sorcePos', 'error', 'oneof', 'no
 
 
 ParseError = namedtuple('ParseError', [sourcePos, errorMsg, oneOfChars, noneofChars])
+
 
 
 
@@ -75,3 +77,86 @@ def concatErrors(p1, p2):
 
 def mergeErrorsMany(*errors):
     return reduce(mergeErrors, errors)
+
+
+
+
+
+
+
+
+LETTERS = set(ascii_letters)
+DIGITS  = set(map(str, xrange(10)))
+
+
+
+
+def showParseError(pError):
+    msg = '\n'.join([showPositionInfo(pError), parseErrorMsg(pError), 'expecting '])
+    oneof, noneof = set(parseErrorOneOf(pError)), set(parseErrorNoneOf(pError))
+
+    if oneof and noneof:
+        msg += '%s\n           OR %s' % (showOneOf(oneof), showNoneOf(noneof))
+    elif oneof:
+        msg += '%s' % showOneOf(oneof)
+    elif noneof:
+        msg += '%s' % showNoneOf(noneof)
+    else:
+        msg = 'No error'
+
+    return msg
+
+
+
+def showPositionInfo(pError):
+    pos = parseErrorPos(pError)
+    filename, line, col = sourceName(pos), sourceLine(pos), sourceColumn(pos)
+
+    info = '"%s" ' % filename if filename is not None else ''
+    info += '(line %d, column %d):' % (line, col)
+    
+    return info
+
+
+
+
+def showErrorMessages(chars, prefix=None):
+    msg = prefix + ' ' if prefix is not None else ''
+    errors = showChars(chars)
+    if not errors:
+        return ''
+    
+    msg += ', '.join(errors[:-1])
+    if len(msg) > 1:
+        msg += ' or '
+    msg += errors[-1]
+    return msg
+
+
+
+
+def showOneOf(chars):
+    return showErrorMessages(chars)
+
+
+
+def showNoneOf(chars):
+    return showErrorMessages(chars, 'none of')
+
+
+
+def showChars(chars):
+    '''Given a set of chars, return a list of strings desribing 'chars' in error messages'''
+    res = []
+    if LETTERS.issubset(chars):
+        res.append('letter')
+        chars -= LETTERS
+    if DIGITS.issubset(chars):
+        res.append('digit')
+        chars -= DIGITS
+    if ' ' in chars:
+        res.append('space')
+        chars.remove(' ')
+    if chars:
+        res.extend(map(repr, chars))
+    return res
