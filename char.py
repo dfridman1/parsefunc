@@ -46,7 +46,7 @@ def noneOf(chars):
     def processor(state):
         rem = parseSuccessRemainder(state)
         if not rem:
-            return parseErrorFromSuccessState(state, 'EOF reached')
+            return parseErrorFromSuccessState(state, 'EOF reached', noneof=chars)
         for ch in chars:
             newstate = char(ch)(state)
             if isParseSuccess(newstate):
