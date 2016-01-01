@@ -13,7 +13,29 @@ from state import (
 
 
 
+
+class Parser(object):
+
+    def __init__(self, parser):
+        self._parser = parser
+
+    def __call__(self, state):
+        return self._runParser(state)
+
+    def _runParser(self, state):
+        return self._parser(state)
+
+    def __or__(self, other):
+        return choice(self, other)
+
+    def __and__(self, other):
+        return sequence(self, other)
+
+
+
+
 def sequence(*parsers):
+    @Parser
     def processor(state):
         tree = []
         for pr in parsers:
@@ -28,6 +50,7 @@ def sequence(*parsers):
 
 
 def choice(*parsers):
+    @Parser
     def processor(state):
         errors = []
         for pr in parsers:
@@ -41,6 +64,7 @@ def choice(*parsers):
 
 
 def many1(parser):
+    @Parser
     def processor(state):
         state = parser(state)
         if isParseError(state):
@@ -65,6 +89,7 @@ def many(parser):
 
 
 def option(default_value, parser):
+    @Parser
     def processor(state):
         newstate = parser(state)
         if isParseSuccess(newstate):
@@ -80,6 +105,7 @@ def option(default_value, parser):
 
 
 def sepBy1(parser, sep):
+    @Parser
     def processor(state):
         state = parser(state)
         if isParseError(state):
@@ -101,6 +127,7 @@ def sepBy(parser, sep):
 
 
 def endBy1(parser, sep):
+    @Parser
     def processor(state):
         newstate = many1(sequence(parser, sep))(state)
         if isParseError(newstate):

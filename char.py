@@ -1,5 +1,5 @@
 from string import ascii_letters
-from combinators import choice, sequence, many1
+from combinators import choice, sequence, many1, Parser
 from prim import syntax_tree
 
 from state import (
@@ -11,8 +11,9 @@ from state import (
 
 
 
-        
+
 def char(ch):
+    @Parser
     def processor(state):
         text = parseSuccessRemainder(state)
         if text and text[0] == ch:
