@@ -1,4 +1,4 @@
-from string import ascii_letters
+from string import ascii_lowercase, ascii_uppercase, whitespace
 from combinators import choice, sequence, many1
 from prim import Parser, syntax_tree
 
@@ -11,6 +11,9 @@ from state import (
 
 
 
+EOF_MESSAGE = 'unexpected end of input'
+
+
 
 def char(ch):
     @Parser
@@ -19,7 +22,7 @@ def char(ch):
         if text and text[0] == ch:
             return updateParseSuccess(state, ch, ch, text[1:])
         else:
-            message  = 'unexpected end of input' if not text else 'unexpected %r' % text[0]
+            message  = EOF_MESSAGE if not text else 'unexpected %r' % text[0]
             expected = ch
             return parseErrorFromSuccessState(state, message, expected=expected)
     return processor
@@ -42,10 +45,11 @@ def oneOf(chars):
 
 
 def noneOf(chars):
+    @Parser
     def processor(state):
         rem = parseSuccessRemainder(state)
         if not rem:
-            return parseErrorFromSuccessState(state, 'unexpected end of input', noneof=chars)
+            return parseErrorFromSuccessState(state, EOF_MESSAGE, noneof=chars)
         for ch in chars:
             newstate = char(ch)(state)
             if isParseSuccess(newstate):
@@ -53,20 +57,44 @@ def noneOf(chars):
                 return parseErrorFromSuccessState(state, message, noneof=noneof)
         return updateParseSuccess(state, rem[0], rem[0], rem[1:])
     return processor
-            
+
+
+
+def satisfy(predicate):
+    'Succeeds for any character, which satisfies the predicate'
+    @Parser
+    def processor(state):
+        remainder = parseSuccessRemainder(state)
+        if not remainder:
+            return parseErrorFromSuccessState(state, EOF_MESSAGE)
+        ch = remainder[0]
+        if not predicate(ch):
+            return parseErrorFromSuccessState(state, 'character %r does not satisfy the predicate' % ch)
+        else:
+            return updateParseSuccess(state, ch, ch, remainder[1:])
+    return processor
+
+
+
+
                 
 
+toString = syntax_tree(mkString)
 
 
-letter  = oneOf(ascii_letters)
-letters = syntax_tree(mkString)(many1(letter))
-digit   = oneOf(''.join(map(str, xrange(10))))
-digits  = syntax_tree(mkString)(many1(digit))
-space   = char(' ')
-spaces  = syntax_tree(mkString)(many1(space))
-lparen  = char('(')
-rparen  = char(')')
-lbrace  = char('{')
-rbrace  = char('}')
-newline = char('\n')
-tab     = char('\t')
+anyChar  = satisfy(lambda _: True)
+upper    = oneOf(ascii_uppercase)
+lower    = oneOf(ascii_lowercase)
+letter   = lower | upper
+letters  = toString(many1(letter))
+digit    = oneOf(''.join(map(str, xrange(10))))
+digits   = toString(many1(digit))
+alphaNum = letter | digit
+space    = oneOf(whitespace)
+spaces   = toString(many1(space))
+lparen   = char('(')
+rparen   = char(')')
+lbrace   = char('{')
+rbrace   = char('}')
+newline  = char('\n')
+tab      = char('\t')
