@@ -1,5 +1,6 @@
 from state import initialParseState
 from state import isParseSuccess, parseSuccessTree, setParseSuccessTree, showParseError
+from combinators import Parser
 
 
 
@@ -8,6 +9,7 @@ def syntax_tree(transform):
     '''Decorator for the user to apply a 'transform' function to the tree
     returned by the parser.'''
     def func(parser):
+        @Parser
         def processor(state):
             newstate = parser(state)
             if isParseSuccess(newstate):

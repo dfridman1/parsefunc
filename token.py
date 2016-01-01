@@ -1,18 +1,14 @@
 from char import lparen, rparen, lbrace, rbrace
 from combinators import sequence
 from state import isParseError, parseSuccessTree, setParseSuccessTree
+from prim import syntax_tree
+
 
 
 
 
 def enclose(open, parser, close):
-    def processor(state):
-        newstate = sequence(open, parser, close)(state)
-        if isParseError(newstate):
-            return newstate
-        parser_tree = parseSuccessTree(newstate)[1]
-        return setParseSuccessTree(newstate, parser_tree)
-    return processor
+    return syntax_tree(lambda x: x[1])(open & parser & close)
 
 
 
