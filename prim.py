@@ -1,10 +1,13 @@
 from state import initialParseState
-from state import (isParseSuccess,
-                   isParseError,
-                   parseSuccessTree,
-                   setParseSuccessTree,
-                   showParseError,
-                   mergeErrors)
+from state import (
+    isParseSuccess,
+    isParseError,
+    parseSuccessTree,
+    setParseSuccessTree,
+    showParseError,
+    mergeErrors,
+    inputConsumed
+)
 
 
     
@@ -27,6 +30,9 @@ class Parser(object):
         def processor(state):
             newstate = self(state)
             if isParseSuccess(newstate):
+                return newstate
+            # fail if any input has been consumed
+            if inputConsumed(newstate, state):
                 return newstate
             newstate2 = other(state)
             return newstate2 if isParseSuccess(newstate2) else mergeErrors(newstate, newstate2)

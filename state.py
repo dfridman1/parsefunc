@@ -32,8 +32,8 @@ def stateLineColumn(state):
 
 
 
-def stateOccurresLater(state1, state2):
-    '''Returns True if state1 occurres later in the input than state2.'''
+def inputConsumed(state1, state2):
+    '''Returns True if transition from state2 to state1 involved input consumption'''
     return stateLineColumn(state1) > stateLineColumn(state2)
     
 

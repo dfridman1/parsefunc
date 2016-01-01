@@ -1,15 +1,12 @@
 from char import lparen, rparen, lbrace, rbrace
-from combinators import sequence
-from state import isParseError, parseSuccessTree, setParseSuccessTree
-from prim import syntax_tree
+from prim import pure
 
 
 
 
 
 def enclose(open, parser, close):
-    return syntax_tree(lambda x: x[1])(open & parser & close)
-
+    return open >> parser >= (lambda p: close >> pure(p))
 
 
 def parens(parser):

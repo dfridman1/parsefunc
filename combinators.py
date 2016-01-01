@@ -1,7 +1,7 @@
 # *** COMBINATORS ***
 
 
-from prim import Parser, syntax_tree
+from prim import Parser, syntax_tree, fmap, pure
 from operator import and_, or_
 from state import (
     isParseError,
@@ -9,10 +9,8 @@ from state import (
     parseSuccessTree,
     setParseSuccessTree,
     mergeErrorsMany,
-    stateOccurresLater
+    inputConsumed
 )
-
-
 
 
 
@@ -29,65 +27,41 @@ def sequence(*parsers):
 
 
 
-
 def choice(*parsers):
     return reduce(or_, parsers)
 
 
 
 def many1(parser):
+    return parser >= (lambda head: fmap(lambda tail: [head] + tail, many(parser)))
+
+
+def manyR(parser):
+    '''same as 'many', but quickly overflows stack due to recursion limit'''
+    return (parser >= (lambda head: fmap(lambda tail: [head] + tail, manyR(parser)))) | pure([])
+
+
+def many(parser):
     @Parser
     def processor(state):
-        state = parser(state)
-        if isParseError(state):
-            return state
-        tree = [parseSuccessTree(state)]
+        tree = []
         while True:
             newstate = parser(state)
             if isParseError(newstate):
                 break
             tree.append(parseSuccessTree(newstate))
             state = newstate
-        return newstate if stateOccurresLater(newstate, state) else setParseSuccessTree(state, tree)
-        
+        return setParseSuccessTree(state, tree) if not inputConsumed(newstate, state) else newstate
     return processor
-
-
-
-
-def many(parser):
-    return option([], many1(parser))
-
 
 
 def option(default_value, parser):
-    @Parser
-    def processor(state):
-        newstate = parser(state)
-        if isParseSuccess(newstate) or stateOccurresLater(newstate, state):
-            return newstate
-        else:
-            return setParseSuccessTree(state, default_value)
-    return processor
-
-
+    return parser | pure(default_value)
 
 
 
 def sepBy1(parser, sep):
-    @Parser
-    def processor(state):
-        state = parser(state)
-        if isParseError(state):
-            return state
-        tree = [parseSuccessTree(state)]
-        state = many(sequence(sep, parser))(state)
-        if isParseError(state):
-            return state
-        tree.extend(map(lambda x: x[1], parseSuccessTree(state)))
-        return setParseSuccessTree(state, tree)
-    return processor
-
+    return parser >= (lambda h: fmap(lambda t: [h] + t, many(sep >> parser)))
 
 
 
@@ -97,14 +71,8 @@ def sepBy(parser, sep):
 
 
 def endBy1(parser, sep):
-    @Parser
-    def processor(state):
-        newstate = many1(sequence(parser, sep))(state)
-        if isParseError(newstate):
-            return newstate
-        tree = map(lambda x: x[0], parseSuccessTree(newstate))
-        return setParseSuccessTree(newstate, tree)
-    return processor
+    parseOne = parser >= (lambda p: sep >> pure(p))
+    return many1(parseOne)
 
 
 
