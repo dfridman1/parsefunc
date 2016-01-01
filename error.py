@@ -92,17 +92,17 @@ DIGITS  = set(map(str, xrange(10)))
 
 
 def showParseError(pError):
-    msg = '\n'.join([showPositionInfo(pError), parseErrorMsg(pError), 'expecting '])
+    msg = '\n'.join([showPositionInfo(pError), parseErrorMsg(pError)])
     oneof, noneof = set(parseErrorOneOf(pError)), set(parseErrorNoneOf(pError))
 
+    if oneof or noneof:
+        msg += '\nexpecting '
     if oneof and noneof:
         msg += '%s\n           OR %s' % (showOneOf(oneof), showNoneOf(noneof))
     elif oneof:
         msg += '%s' % showOneOf(oneof)
     elif noneof:
         msg += '%s' % showNoneOf(noneof)
-    else:
-        msg = 'No error'
 
     return msg
 
