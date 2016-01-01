@@ -16,8 +16,9 @@ from state import (
 
 class Parser(object):
 
-    def __init__(self, parser):
-        self._parser = parser
+    def __init__(self, parser, arbitrary_look_ahead=False):
+        self._parser               = parser
+        self._arbitrary_look_ahead = arbitrary_look_ahead
 
     def __call__(self, state):
         return self._runParser(state)
@@ -32,7 +33,7 @@ class Parser(object):
             if isParseSuccess(newstate):
                 return newstate
             # fail if any input has been consumed
-            if inputConsumed(newstate, state):
+            if inputConsumed(newstate, state) and not self._arbitrary_look_ahead:
                 return newstate
             newstate2 = other(state)
             return newstate2 if isParseSuccess(newstate2) else mergeErrors(newstate, newstate2)
@@ -87,9 +88,16 @@ class Parser(object):
         return m >= (lambda tree: pure(f(tree)))
 
 
+    @staticmethod
+    def tryP(parser):
+        return Parser(parser._parser, arbitrary_look_ahead=True)
+
+
+
 
 pure = Parser.pure
 fmap = Parser.fmap
+tryP = Parser.tryP
     
 
 

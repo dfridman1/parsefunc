@@ -39,6 +39,7 @@ from prim import (
     syntax_tree,
     pure,
     fmap,
+    tryP,
     Parser
 )
 
