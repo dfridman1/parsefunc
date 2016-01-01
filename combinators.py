@@ -85,7 +85,7 @@ def sepBy1(parser, sep):
         if isParseError(state):
             return state
         tree = [parseSuccessTree(state)]
-        state = many(sequence(sep, choice(parser, sep)))(state)
+        state = many(sequence(sep, parser))(state)
         if isParseError(state):
             return state
         tree.extend(map(lambda x: x[1], parseSuccessTree(state)))
@@ -102,7 +102,7 @@ def sepBy(parser, sep):
 
 def endBy1(parser, sep):
     def processor(state):
-        newstate = many1(sequence(parser, choice(sep, parser)))(state)
+        newstate = many1(sequence(parser, sep))(state)
         if isParseError(newstate):
             return newstate
         tree = map(lambda x: x[0], parseSuccessTree(newstate))
