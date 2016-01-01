@@ -1,6 +1,8 @@
 # *** COMBINATORS ***
 
 
+from prim import Parser, syntax_tree
+from operator import and_, or_
 from state import (
     isParseError,
     isParseSuccess,
@@ -14,52 +16,22 @@ from state import (
 
 
 
-class Parser(object):
-
-    def __init__(self, parser):
-        self._parser = parser
-
-    def __call__(self, state):
-        return self._runParser(state)
-
-    def _runParser(self, state):
-        return self._parser(state)
-
-    def __or__(self, other):
-        return choice(self, other)
-
-    def __and__(self, other):
-        return sequence(self, other)
-
 
 
 
 def sequence(*parsers):
-    @Parser
-    def processor(state):
-        tree = []
-        for pr in parsers:
-            state = pr(state)
-            if isParseError(state):
-                return state
-            tree.append(parseSuccessTree(state))
-        return setParseSuccessTree(state, tree)
-    return processor
+    def flatten(tree):
+        try:
+            return tree if len(tree) <> 2 else flatten(tree[0]) + [tree[1]]
+        except TypeError:
+            return tree
+    return syntax_tree(flatten)(reduce(and_, parsers))
 
 
 
 
 def choice(*parsers):
-    @Parser
-    def processor(state):
-        errors = []
-        for pr in parsers:
-            newstate = pr(state)
-            if isParseSuccess(newstate):
-                return newstate
-            errors.append(newstate)
-        return mergeErrorsMany(*errors)
-    return processor
+    return reduce(or_, parsers)
 
 
 
@@ -92,9 +64,7 @@ def option(default_value, parser):
     @Parser
     def processor(state):
         newstate = parser(state)
-        if isParseSuccess(newstate):
-            return newstate
-        elif stateOccurresLater(newstate, state):
+        if isParseSuccess(newstate) or stateOccurresLater(newstate, state):
             return newstate
         else:
             return setParseSuccessTree(state, default_value)

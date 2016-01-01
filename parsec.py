@@ -36,7 +36,9 @@ from char import (
 
 from prim import (
     parse,
-    syntax_tree
+    syntax_tree,
+    pure,
+    fmap
 )
 
 

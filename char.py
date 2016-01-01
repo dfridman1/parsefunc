@@ -1,6 +1,6 @@
 from string import ascii_letters
-from combinators import choice, sequence, many1, Parser
-from prim import syntax_tree
+from combinators import choice, sequence, many1
+from prim import Parser, syntax_tree
 
 from state import (
     parseSuccessRemainder,
