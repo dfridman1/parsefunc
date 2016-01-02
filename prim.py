@@ -50,8 +50,8 @@ class Parser(object):
             newstate = other(state)
             if isParseError(newstate):
                 return newstate
-            return setParseSuccessTree(newstate, [parseSuccessTree(state),
-                                                  parseSuccessTree(newstate)])
+            return setParseSuccessTree(newstate, filter(lambda x: x is not None,
+                                                        [parseSuccessTree(state), parseSuccessTree(newstate)]))  # filter out 'skipped' input
         return processor
 
 

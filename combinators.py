@@ -32,13 +32,20 @@ def choice(*parsers):
 
 
 
+def between(open, close, parser):
+    return open >> parser >= (lambda p: close >> pure(p))
+
+
+
 def many1(parser):
     return parser >= (lambda head: fmap(lambda tail: [head] + tail, many(parser)))
+
 
 
 def manyR(parser):
     '''same as 'many', but quickly overflows stack due to recursion limit'''
     return (parser >= (lambda head: fmap(lambda tail: [head] + tail, manyR(parser)))) | pure([])
+
 
 
 def many(parser):
@@ -53,6 +60,7 @@ def many(parser):
             state = newstate
         return setParseSuccessTree(state, tree) if not inputConsumed(newstate, state) else newstate
     return processor
+
 
 
 def option(default_value, parser):
@@ -78,3 +86,18 @@ def endBy1(parser, sep):
 
 def endBy(parser, sep):
     return option([], endBy1(parser, sep))
+
+
+
+def skipMany1(parser):
+    return parser >> skipMany(parser)
+
+
+def skipMany(parser):
+    @Parser
+    def processor(state):
+        newstate = many(parser)(state)
+        if isParseSuccess(newstate):
+            newstate = setParseSuccessTree(newstate, None)
+        return newstate
+    return processor

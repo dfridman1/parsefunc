@@ -1,17 +1,12 @@
 from char import lparen, rparen, lbrace, rbrace
-from prim import pure
+from combinators import between
 
 
-
-
-
-def enclose(open, parser, close):
-    return open >> parser >= (lambda p: close >> pure(p))
 
 
 def parens(parser):
-    return enclose(lparen, parser, rparen)
+    return between(lparen, rparen, parser)
 
 
 def braces(parser):
-    return enclose(lbrace, parser, rbrace)
+    return between(lbrace, rbrace, parser)
