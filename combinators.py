@@ -1,7 +1,7 @@
 # *** COMBINATORS ***
 
 
-from prim import Parser, syntax_tree, fmap, pure
+from prim import Parser, syntax_tree, fmap, lift, mzero
 from operator import and_, or_
 from state import (
     isParseError,
@@ -23,7 +23,7 @@ def sequence(*parsers):
             return tree if len(tree) <> 2 else flatten(tree[0]) + [tree[1]]
         except TypeError:
             return tree
-    return syntax_tree(flatten)(reduce(and_, parsers))
+    return syntax_tree(flatten)(reduce(and_, parsers, mzero))
 
 
 
@@ -33,7 +33,7 @@ def choice(*parsers):
 
 
 def between(open, close, parser):
-    return open >> parser >= (lambda p: close >> pure(p))
+    return open >> parser >= (lambda p: close >> lift(p))
 
 
 
@@ -44,7 +44,7 @@ def many1(parser):
 
 def manyR(parser):
     '''same as 'many', but quickly overflows stack due to recursion limit'''
-    return (parser >= (lambda head: fmap(lambda tail: [head] + tail, manyR(parser)))) | pure([])
+    return (parser >= (lambda head: fmap(lambda tail: [head] + tail, manyR(parser)))) | lift([])
 
 
 
@@ -64,7 +64,7 @@ def many(parser):
 
 
 def option(default_value, parser):
-    return parser | pure(default_value)
+    return parser | lift(default_value)
 
 
 
@@ -79,7 +79,7 @@ def sepBy(parser, sep):
 
 
 def endBy1(parser, sep):
-    parseOne = parser >= (lambda p: sep >> pure(p))
+    parseOne = parser >= (lambda p: sep >> lift(p))
     return many1(parseOne)
 
 
@@ -105,4 +105,4 @@ def skipMany(parser):
 
 
 def count(n, parser):
-    return sequence(*[parser for _ in xrange(n)]) if n > 0 else pure([])
+    return sequence(*[parser for _ in xrange(n)]) if n > 0 else lift([])

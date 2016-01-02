@@ -45,7 +45,7 @@ from char import (
 from prim import (
     parse,
     syntax_tree,
-    pure,
+    lift,
     fmap,
     tryP,
     Parser

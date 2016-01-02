@@ -75,7 +75,7 @@ class Parser(object):
 
 
     @staticmethod
-    def pure(tree):
+    def lift(tree):
         "return"
         @Parser
         def processor(state):
@@ -85,7 +85,7 @@ class Parser(object):
 
     @staticmethod
     def fmap(f, m):
-        return m >= (lambda tree: pure(f(tree)))
+        return m >= (lambda tree: lift(f(tree)))
 
 
     @staticmethod
@@ -95,9 +95,10 @@ class Parser(object):
 
 
 
-pure = Parser.pure
-fmap = Parser.fmap
-tryP = Parser.tryP
+lift  = Parser.lift
+fmap  = Parser.fmap
+tryP  = Parser.tryP
+mzero = lift([])
     
 
 
