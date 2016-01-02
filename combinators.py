@@ -28,7 +28,10 @@ def sequence(*parsers):
 
 
 def choice(*parsers):
-    return reduce(or_, parsers)
+    try:
+        return reduce(or_, parsers)
+    except TypeError:
+        return mzero
 
 
 
@@ -44,7 +47,7 @@ def many1(parser):
 
 def manyR(parser):
     '''same as 'many', but quickly overflows stack due to recursion limit'''
-    return (parser >= (lambda head: fmap(lambda tail: [head] + tail, manyR(parser)))) | lift([])
+    return (parser >= (lambda head: fmap(lambda tail: [head] + tail, manyR(parser)))) | mzero
 
 
 
@@ -105,4 +108,4 @@ def skipMany(parser):
 
 
 def count(n, parser):
-    return sequence(*[parser for _ in xrange(n)]) if n > 0 else lift([])
+    return sequence(*[parser for _ in xrange(n)]) if n > 0 else mzero
