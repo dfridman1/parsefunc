@@ -74,5 +74,5 @@ from token import (
     natural,
     integer,
     double,
-    naturalOrDouble
+    integerOrDouble
 )

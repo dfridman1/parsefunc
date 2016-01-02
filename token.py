@@ -14,6 +14,7 @@ from char import (
 )
 from combinators import (
     between,
+    many,
     skipMany,
     sepBy,
     sepBy1,
@@ -27,7 +28,11 @@ from prim import (
 )
 
 
-between_ = lambda open, close: lambda parser: between(open, close, parser)
+
+
+def between_(open, close):
+    open, close = sequence(open, many(space)), sequence(many(space), close)
+    return lambda parser: between(open, close, parser)
 
 
 parens   = between_(lparen, rparen)
@@ -62,12 +67,19 @@ commaSep1 = sepBy1_(comma)
 
 
 
+def updateSign(sign, num):
+    return num * (-1 if sign == '-' else 1)
+
+
 natural         = fmap(int, digits)
 
-integer         = fmap(lambda x: int(''.join(x)),
-                       sequence(option('', oneOf('-+')), digits))
+integer         = fmap(lambda x: updateSign(*x),
+                       sequence(option('', oneOf('-+')), natural))
 
-double          = fmap(lambda x: float(''.join(x)),
+doublePos       = fmap(lambda x: float(''.join(x)),
                        sequence(digits, char('.'), option('0', digits)))
 
-naturalOrDouble = tryP(double) | natural
+double          = fmap(lambda x: updateSign(*x),
+                       sequence(option('', oneOf('-+')), doublePos))
+
+integerOrDouble = tryP(double) | natural
