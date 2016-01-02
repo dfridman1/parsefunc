@@ -101,3 +101,8 @@ def skipMany(parser):
             newstate = setParseSuccessTree(newstate, None)
         return newstate
     return processor
+
+
+
+def count(n, parser):
+    return sequence(*[parser for _ in xrange(n)]) if n > 0 else pure([])
