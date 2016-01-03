@@ -67,6 +67,7 @@ from tokens import (
     semi,
     colon,
     dot,
+    whiteSpace,
     semiSep,
     semiSep1,
     commaSep,

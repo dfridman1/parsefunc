@@ -82,4 +82,4 @@ doublePos       = fmap(lambda x: float(''.join(x)),
 double          = fmap(lambda x: updateSign(*x),
                        sequence(option('', oneOf('-+')), doublePos))
 
-integerOrDouble = tryP(double) | natural
+integerOrDouble = tryP(double) | integer
