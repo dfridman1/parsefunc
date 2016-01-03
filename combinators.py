@@ -20,7 +20,7 @@ from state import (
 def sequence(*parsers):
     def flatten(tree):
         try:
-            return tree if len(tree) <> 2 else flatten(tree[0]) + [tree[1]]
+            return tree if len(tree) != 2 else flatten(tree[0]) + [tree[1]]
         except TypeError:
             return tree
     return syntax_tree(flatten)(reduce(and_, parsers, mzero))
@@ -71,29 +71,39 @@ def option(default_value, parser):
 
 
 
-def sepBy1(parser, sep):
-    return parser >= (lambda h: fmap(lambda t: [h] + t, many(sep >> parser)))
+concat  = lambda xs: sum(xs, [])
+prepend = lambda head: lambda tail: [head] + tail
 
 
 
-def sepBy(parser, sep):
-    return option([], sepBy1(parser, sep))
+def sepBy1(parser, sep, keep=False):
+    rest = fmap(concat, many(sequence(sep, parser))) if keep else many(sep >> parser)
+    return parser >= (lambda h: fmap(prepend(h), rest))
 
 
 
-def endBy1(parser, sep):
-    parseOne = parser >= (lambda p: sep >> lift(p))
-    return many1(parseOne)
+def sepBy(parser, sep, keep=False):
+    return option([], sepBy1(parser, sep, keep))
 
 
 
-def endBy(parser, sep):
-    return option([], endBy1(parser, sep))
+def endBy1(parser, sep, keep=False):
+    if keep:
+        parseOne, transform = sequence(parser, sep), concat
+    else:
+        parseOne, transform = parser >= (lambda p: sep >> lift(p)), lambda x: x
+    return fmap(transform, many1(parseOne))
+
+
+
+def endBy(parser, sep, keep=False):
+    return option([], endBy1(parser, sep, keep))
 
 
 
 def skipMany1(parser):
     return parser >> skipMany(parser)
+
 
 
 def skipMany(parser):
