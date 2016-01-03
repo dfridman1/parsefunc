@@ -16,6 +16,8 @@ EOF_MESSAGE = 'unexpected end of input'
 
 
 def char(ch):
+    '''Parses a characted 'ch'. Returns this character.'''
+
     @Parser
     def processor(state):
         text = parseSuccessRemainder(state)
@@ -35,16 +37,25 @@ def mkString(chars):
 
 
 def string(s):
+    '''Parses a string 's'. Returns it. '''
+
     return syntax_tree(mkString)(sequence(*map(char, s)))
 
 
 
 def oneOf(chars):
+    '''Parses one of the characters in 'chars'. Returns the parsed character.
+    '''
+
     return choice(*map(char, chars))
 
 
 
 def noneOf(chars):
+    '''Succeeds if the current character is NOT in 'chars'. Returns
+    the parsed chacacter.
+    '''
+
     @Parser
     def processor(state):
         rem = parseSuccessRemainder(state)
@@ -61,7 +72,10 @@ def noneOf(chars):
 
 
 def satisfy(predicate):
-    'Succeeds for any character, which satisfies the predicate'
+    '''Succeeds for any character, which satisfies the predicate.
+    Returns the parsed character.
+    '''
+
     @Parser
     def processor(state):
         remainder = parseSuccessRemainder(state)
@@ -77,7 +91,7 @@ def satisfy(predicate):
 
 
 
-                
+
 
 toString = syntax_tree(mkString)
 

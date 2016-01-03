@@ -44,7 +44,7 @@ from char import (
     rangle
 )
 
-    
+
 
 
 from prim import (

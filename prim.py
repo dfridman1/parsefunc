@@ -10,7 +10,7 @@ from state import (
 )
 
 
-    
+
 
 
 
@@ -27,6 +27,13 @@ class Parser(object):
         return self._parser(state)
 
     def __or__(self, other):
+        '''First runs parser 'self'. If it succeeds, returns value returned by it.
+        Otherwise, runs parser 'other', returning the corresponding value.
+        If both fail, returns 'the farthest into the input' error.
+        VERY IMPORTANT: if parser 'self' fails, but consumes input, then
+        parser 'other' is not tried - error from parser 'self' is returned.
+        '''
+
         @Parser
         def processor(state):
             newstate = self(state)
@@ -40,8 +47,12 @@ class Parser(object):
         return processor
 
 
-    
+
     def __and__(self, other):
+        '''First run 'self' parser, followed by 'other'. Returns a list
+        of values returned by 'self' and 'other'.
+        '''
+
         @Parser
         def processor(state):
             state = self(state)
@@ -56,9 +67,11 @@ class Parser(object):
 
 
     def __ge__(self, f):
-        ''' bind :: Parser a -> (a -> Parser b) -> Parser b
-            f    :: a -> Parser a
+        ''' Analogue to Haskell's '>>=' ('bind') member of Monad type class.
+        Applies a parser 'self'. Then applies function 'f' to produce out of
+        value returned by 'self' a new parser.
         '''
+
         @Parser
         def processor(state):
             newstate = self(state)
@@ -70,13 +83,26 @@ class Parser(object):
 
 
     def __rshift__(self, other):
-        "then"
+        '''Analogue to Haskell's '>>' ('then') member of Monad type class.
+        Applies parser 'self', ignoring the value returned by it. Then
+        applies parser 'other'.
+        '''
+
         return self >= (lambda _: other)
 
 
     @staticmethod
     def lift(tree):
-        "return"
+        '''Analogue to Haskell's 'return'. Takes a value 'tree'
+        and creates a parser, which will result in a 'tree' for
+        any state passed to the parser.
+        Used when building parsers with monadic operations.
+        However, it is ALWAYS possible to achieve the same
+        functionality using 'syntax_tree(your_function)'
+        decorator on a parser, which results in a applying
+        'your_function' to the value returned by the parser.
+        '''
+
         @Parser
         def processor(state):
             return setParseSuccessTree(state, tree)
@@ -85,12 +111,24 @@ class Parser(object):
 
     @staticmethod
     def fmap(f, m):
+        '''Analogue to Haskell's fmap member of Functor type class. Takes a
+        function 'f' and a parser 'm'. Returns a new parser, which will
+        apply 'f' to the value returned by the original parser.
+        '''
+
         return m >= (lambda tree: lift(f(tree)))
 
 
     @staticmethod
     def tryP(parser):
+        '''Takes a parser and returns a new parser with arbitrary look ahead.
+        This ONLY changes the behavior of a new parser when using it with
+        'choice' or '|' in the following way: if a new parser fails WITH
+        consuming any input, the next alternative parser is nonetheless TRIED.
+        '''
+
         return Parser(parser._parser, arbitrary_look_ahead=True)
+
 
 
 
@@ -98,14 +136,21 @@ class Parser(object):
 lift  = Parser.lift
 fmap  = Parser.fmap
 tryP  = Parser.tryP
-mzero = lift([])
-    
+mzero = lift([])  # 'unit' parser: returns an empty list for any state
+
 
 
 
 def syntax_tree(transform):
-    '''Decorator for the user to apply a 'transform' function to the tree
-    returned by the parser.'''
+    # '''Decorator for the user to apply a 'transform' function to the tree
+    # returned by the parser.'''
+    '''Decorator to be applied to the parser. Returns a new parser,
+    which will apply 'transform' function to the value returned by
+    the original parser.
+    NOTE: this is a way to build Abstract Syntax Trees from the values
+    returned by the parsers.
+    '''
+
     def func(parser):
         @Parser
         def processor(state):
@@ -122,6 +167,12 @@ def syntax_tree(transform):
 
 
 def parse(parser, input, sourceName=None):
+    '''Runs a 'parser' over the 'input'. A 'parser' is either one of the
+    many parsers provided by the library, or built by user with the help of
+    library's combinators; 'input' is a string to parse; 'sourceName' is
+    only used when displaying error messages (defaulted to None)
+    '''
+
     state = parser(initialParseState(sourceName, input))
-    
+
     return parseSuccessTree(state) if isParseSuccess(state) else showParseError(state)
