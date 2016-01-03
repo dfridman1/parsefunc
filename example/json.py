@@ -2,8 +2,7 @@ import sys
 from jvalue import *
 
 
-# appending won't work because of conflicting filename 'token'
-sys.path.insert(0, '../')
+sys.path.append('../')
 
 
 from parsec import *
