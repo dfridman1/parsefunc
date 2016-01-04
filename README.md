@@ -76,7 +76,7 @@ optionally the 'source name'.
 
 Note that the above implementation does not allow spaces between tokens. For
 a more rigorous treatment of evaluating arithmetic expressions, please go
-[here](examples/simple_arithm.py).
+[here](examples/arithm.py).
 
 
 ### Navigation
