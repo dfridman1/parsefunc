@@ -11,23 +11,51 @@ from state import (
 
 
 
-EOF_MESSAGE = 'unexpected end of input'
+EOF_MESSAGE        = 'unexpected end of input'
+FOUND_MESSAGE      = 'found %r'
+UNEXPECTED_MESSAGE = 'unexpected %r'
+
+
+
+def satisfy(predicate,
+            errorMsg='character %r does not satisfy the predicate',
+            expected='',
+            noneof=''):
+    '''Succeeds for any character, which satisfies the predicate.
+    Returns the parsed character.
+    '''
+
+    @Parser
+    def processor(state):
+        remainder = parseSuccessRemainder(state)
+        if not remainder:
+            return parseErrorFromSuccessState(state,
+                                              EOF_MESSAGE,
+                                              expected,
+                                              noneof)
+        ch = remainder[0]
+        if not predicate(ch):
+            try:
+                message = errorMsg % ch
+            except TypeError:
+                message = errorMsg
+            return parseErrorFromSuccessState(state,
+                                              message,
+                                              expected,
+                                              noneof)
+        else:
+            return updateParseSuccess(state, ch, ch, remainder[1:])
+    return processor
+
 
 
 
 def char(ch):
-    '''Parses a characted 'ch'. Returns this character.'''
+    '''Parses a character 'ch'. Returns this character.'''
 
-    @Parser
-    def processor(state):
-        text = parseSuccessRemainder(state)
-        if text and text[0] == ch:
-            return updateParseSuccess(state, ch, ch, text[1:])
-        else:
-            message  = EOF_MESSAGE if not text else 'unexpected %r' % text[0]
-            expected = ch
-            return parseErrorFromSuccessState(state, message, expected=expected)
-    return processor
+    return satisfy(lambda x: x == ch,
+                   UNEXPECTED_MESSAGE,
+                   expected=ch)
 
 
 
@@ -53,40 +81,12 @@ def oneOf(chars):
 
 def noneOf(chars):
     '''Succeeds if the current character is NOT in 'chars'. Returns
-    the parsed chacacter.
+    the parsed character.
     '''
 
-    @Parser
-    def processor(state):
-        rem = parseSuccessRemainder(state)
-        if not rem:
-            return parseErrorFromSuccessState(state, EOF_MESSAGE, noneof=chars)
-        for ch in chars:
-            newstate = char(ch)(state)
-            if isParseSuccess(newstate):
-                message, noneof = '%s found' % ch, chars
-                return parseErrorFromSuccessState(state, message, noneof=noneof)
-        return updateParseSuccess(state, rem[0], rem[0], rem[1:])
-    return processor
-
-
-
-def satisfy(predicate):
-    '''Succeeds for any character, which satisfies the predicate.
-    Returns the parsed character.
-    '''
-
-    @Parser
-    def processor(state):
-        remainder = parseSuccessRemainder(state)
-        if not remainder:
-            return parseErrorFromSuccessState(state, EOF_MESSAGE)
-        ch = remainder[0]
-        if not predicate(ch):
-            return parseErrorFromSuccessState(state, 'character %r does not satisfy the predicate' % ch)
-        else:
-            return updateParseSuccess(state, ch, ch, remainder[1:])
-    return processor
+    return satisfy(lambda ch: ch not in chars,
+                   errorMsg=FOUND_MESSAGE,
+                   noneof=chars)
 
 
 
@@ -94,14 +94,30 @@ def satisfy(predicate):
 
 
 toString = syntax_tree(mkString)
+isUpper  = lambda ch: ch >= 'A' and ch <= 'Z'
+isLower  = lambda ch: ch >= 'a' and ch <= 'z'
+isDigit  = lambda ch: ch >= '0' and ch <= '9'
+DIGITS   = ''.join(map(str, xrange(10)))
 
 
 anyChar  = satisfy(lambda _: True)
-upper    = oneOf(ascii_uppercase)
-lower    = oneOf(ascii_lowercase)
+
+upper    = satisfy(isUpper,
+                   errorMsg=UNEXPECTED_MESSAGE,
+                   expected=ascii_uppercase)
+
+lower    = satisfy(isLower,
+                   errorMsg=UNEXPECTED_MESSAGE,
+                   expected=ascii_lowercase)
+
 letter   = lower | upper
 letters  = toString(many1(letter))
-digit    = oneOf(''.join(map(str, xrange(10))))
+
+digit    = satisfy(isDigit,
+                   errorMsg=UNEXPECTED_MESSAGE,
+                   expected=DIGITS)
+
+
 digits   = toString(many1(digit))
 alphaNum = letter | digit
 space    = oneOf(whitespace)
