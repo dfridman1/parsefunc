@@ -1,20 +1,14 @@
 import sys
 
 
-sys.path.append('../')
-
+sys.path.append('..')
 
 
 from parsec import *
 
 
-
-# parse one of passed in chars and skip trailing whitespace
-op = lambda chs: oneOf(chs) >= (lambda ch: whiteSpace >> lift(ch))
-
-
-plusMinus = op('+-')
-multDiv   = op('*/')
+plusMinus = oneOf('+-')
+multDiv   = oneOf('*/')
 
 
 
@@ -34,44 +28,32 @@ def reduceExprs(exprs, ops, default=0):
 def reduceSum(exprs):
     add, sub = lambda x, y: x + y, lambda x, y: x - y
     ops      = {'+': add, '-': sub}
-    return reduceExprs(exprs, ops)
+    return reduceExprs(exprs, ops, default=0)
 
 
 
 def reduceProduct(exprs):
     mult, div = lambda x, y: x * y, lambda x, y: x / float(y)
     ops       = {'*': mult, '/': div}
-    return reduceExprs(exprs, ops)
+    return reduceExprs(exprs, ops, default=1)
 
 
 
 @syntax_tree(reduceSum)
 def parseExpr(s):
-    return sepBy1(parseTerm, plusMinus, keep=True)(s)
+    return sepBy(parseTerm, plusMinus, keep=True)(s)
 
 
-
-product = lambda xs: reduce(lambda x, y: x * y, xs, 1)
-
+@syntax_tree(reduceProduct)
+def parseTerm(s):
+    return sepBy(parseFactor, multDiv, keep=True)(s)
 
 
 @Parser
 def parseFactor(s):
-    return (parens(parseExpr) | parseNumber)(s)
-
-
-@Parser
-def parseNumber(s):
-    '''parse a number and skip any number of trailing whitespace'''
-    return (integerOrDouble >= (lambda num: whiteSpace >> lift(num)))(s)
-
-
-
-@syntax_tree(lambda x: reduceProduct(x) if isinstance(x, list) else x)
-def parseTerm(s):
-    return (tryP(sepBy1(parseFactor, multDiv, keep=True)) | parseFactor)(s)
-
-
+    return between(whiteSpace,
+                   whiteSpace,
+                   parens(parseExpr) | integerOrDouble)(s)
 
 
 
@@ -79,4 +61,4 @@ if __name__ == '__main__':
 
     expr = raw_input('enter expression:\n')
 
-    print parse(parseExpr, expr, sourceName='somefile.py')
+    print parse(parseExpr, expr, 'arithm.py')
