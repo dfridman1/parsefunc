@@ -1,5 +1,4 @@
 from collections import namedtuple
-from utils import updateField
 
 
 
@@ -14,7 +13,7 @@ pos = SourcePos('main.py', 45, 67)
 
 
 def updatePosField(t, field_name, new_value):
-    return updateField(SourcePos, t, field_name, new_value)
+    return t._replace(**{field_name: new_value})
 
 
 

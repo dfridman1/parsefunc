@@ -1,5 +1,4 @@
 from collections import namedtuple
-from utils import updateField
 from pos import sourceLine, sourceColumn, sourceName
 from string import ascii_letters
 
@@ -16,7 +15,7 @@ ParseError = namedtuple('ParseError', [sourcePos, errorMsg, oneOfChars, noneofCh
 
 
 def updateParseErrorField(pError, field_name, new_value):
-    return updateField(ParseError, pError, field_name, new_value)
+    return pError._replace(**{field_name: new_value})
 
 
 

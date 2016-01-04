@@ -1,5 +1,4 @@
 from collections import namedtuple
-from utils import updateField
 from pos import initialPos, updatePosString
 
 
@@ -11,7 +10,7 @@ ParseSuccess = namedtuple('ParseSuccess', [sourcePos, treeAttr, remainder])
 
 
 def updateParseSuccessField(state, field_name, new_value):
-    return updateField(ParseSuccess, state, field_name, new_value)
+    return state._replace(**{field_name: new_value})
 
 
 
