@@ -81,7 +81,7 @@ a more rigorous treatment of evaluating arithmetic expressions, please go
 
 ### Navigation
 ---
-Please consult [combinators.py](combinators.py), [char.py](char.py) and [tokens.py](tokens.py)
+Please consult [combinators.py](parsec/combinators.py), [char.py](parsec/char.py) and [tokens.py](parsec/tokens.py)
 for a wide range of combinators available.
 
 [examples](examples) directory contains 2 examples of using the library:
