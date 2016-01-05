@@ -17,9 +17,9 @@ from state import (
 
 
 
-def sequence(*parsers):
-    '''Applies 'parsers' in sequence. Returns a list of values returned
-    by parsers.
+def _sequence(*parsers):
+    '''same as 'sequence', but less efficient (due to having to
+    ALWAYS go over all 'parsers'.
     '''
 
     def flatten(tree):
@@ -31,6 +31,36 @@ def sequence(*parsers):
 
 
 
+def sequence(*parsers):
+    '''Applies 'parsers' in sequence. Returns a list of values returned
+    by parsers.
+    '''
+
+    @Parser
+    def processor(state):
+        tree = []
+        for pr in parsers:
+            state = pr(state)
+            if isParseError(state):
+                return state
+            tree.append(parseSuccessTree(state))
+        return setParseSuccessTree(state, tree)
+    return processor
+
+
+
+def _choice(*parsers):
+    '''same as 'choice', but less efficient (due to having to
+    ALWAYS go over all 'parsers'.
+    '''
+
+    try:
+        return reduce(or_, parsers)
+    except TypeError:
+        return mzero
+
+
+
 def choice(*parsers):
     '''Applies the parsers from 'parsers' in order, until one of them
     succeeds. Returns the value of the succeeding parser. If none of the
@@ -38,10 +68,16 @@ def choice(*parsers):
     the input, is returned.
     '''
 
-    try:
-        return reduce(or_, parsers)
-    except TypeError:
-        return mzero
+    @Parser
+    def processor(state):
+        errors = []
+        for pr in parsers:
+            newstate = pr(state)
+            if isParseSuccess(newstate):
+                return newstate
+            errors.append(newstate)
+        return mergeErrorsMany(*errors)
+    return processor
 
 
 
