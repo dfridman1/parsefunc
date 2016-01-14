@@ -120,7 +120,7 @@ digit    = satisfy(isDigit,
 
 digits   = toString(many1(digit))
 alphaNum = letter | digit
-space    = oneOf(whitespace)
+space    = oneOf(set(whitespace))
 spaces   = toString(many1(space))
 lparen   = char('(')
 rparen   = char(')')

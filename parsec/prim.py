@@ -40,12 +40,15 @@ class Parser(object):
             if isParseSuccess(newstate):
                 return newstate
             # fail if any input has been consumed
-            if inputConsumed(newstate, state) and not self._arbitrary_look_ahead:
+            if not self.arbitraryLookAhead() and inputConsumed(newstate, state):
                 return newstate
             newstate2 = other(state)
             return newstate2 if isParseSuccess(newstate2) else mergeErrors(newstate, newstate2)
         return processor
 
+
+    def arbitraryLookAhead(self):
+        return self._arbitrary_look_ahead
 
 
     def __and__(self, other):

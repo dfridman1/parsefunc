@@ -8,9 +8,6 @@ sourcename, line, column = 'sourceName', 'sourceLine', 'sourceColumn'
 SourcePos = namedtuple('SourcePos', [sourcename, line, column])
 
 
-pos = SourcePos('main.py', 45, 67)
-
-
 
 def updatePosField(t, field_name, new_value):
     return t._replace(**{field_name: new_value})
@@ -71,4 +68,4 @@ def updatePosChar(pos, ch):
 
 
 def updatePosString(pos, s):
-    return reduce(lambda acc, ch: updatePosChar(acc, ch), s, pos)
+    return reduce(updatePosChar, s, pos)

@@ -75,6 +75,9 @@ def choice(*parsers):
             newstate = pr(state)
             if isParseSuccess(newstate):
                 return newstate
+            # fail if any input has been consumed
+            if not pr.arbitraryLookAhead() and inputConsumed(newstate, state):
+                return newstate
             errors.append(newstate)
         return mergeErrorsMany(*errors)
     return processor
