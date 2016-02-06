@@ -4,7 +4,7 @@ import sys
 sys.path.append('..')
 
 
-from parsec import *
+from pyparsec import *
 
 
 plusMinus = oneOf('+-')

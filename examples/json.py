@@ -5,7 +5,7 @@ from jvalue import *
 sys.path.append('../')
 
 
-from parsec import *
+from pyparsec import *
 
 
 

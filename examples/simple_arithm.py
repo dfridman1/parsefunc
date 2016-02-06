@@ -3,7 +3,7 @@ import sys
 sys.path.append('..')
 
 
-from parsec import *
+from pyparsec import *
 
 
 plus, mult = char('+'), char('*')
