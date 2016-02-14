@@ -1,9 +1,17 @@
-### Parser combinator library for Python
+ ### Parser combinator library for Python
 ---
 
 A recursive descent parser based on functional combinators. API closely follows
 that of Parsec (a parsing library for Haskell). The library provides the user with
 a wide range of combinators for building more complex parsers.
+
+
+#### Installation
+---
+Open up your terminal and run:
+```
+pip install parsefunc
+```
 
 #### Example
 ---
