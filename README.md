@@ -1,4 +1,4 @@
- ### Parser combinator library for Python
+### Parser combinator library for Python
 ---
 
 A recursive descent parser based on functional combinators. API closely follows
