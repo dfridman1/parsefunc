@@ -70,7 +70,7 @@ class Parser(object):
 
 
     def __ge__(self, f):
-        ''' Analogue to Haskell's '>>=' ('bind') member of Monad type class.
+        '''Analogue to Haskell's '>>=' ('bind') member of Monad type class.
         Applies a parser 'self'. Then applies function 'f' to produce out of
         value returned by 'self' a new parser.
         '''
@@ -85,13 +85,25 @@ class Parser(object):
         return processor
 
 
+    def flatMap(self, f):
+        '''Same as >= ('bind' operator)'''
+
+        return self >= f
+
+
+    def map(self, f):
+        '''Same as fmap'''
+
+        return self.flatMap(lambda x: lift(f(x)))
+
+
     def __rshift__(self, other):
         '''Analogue to Haskell's '>>' ('then') member of Monad type class.
         Applies parser 'self', ignoring the value returned by it. Then
         applies parser 'other'.
         '''
 
-        return self >= (lambda _: other)
+        return self.flatMap(lambda _: other)
 
 
     @staticmethod
