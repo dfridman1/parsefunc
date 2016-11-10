@@ -157,8 +157,6 @@ mzero = lift([])  # 'unit' parser: returns an empty list for any state
 
 
 def syntax_tree(transform):
-    # '''Decorator for the user to apply a 'transform' function to the tree
-    # returned by the parser.'''
     '''Decorator to be applied to the parser. Returns a new parser,
     which will apply 'transform' function to the value returned by
     the original parser.
